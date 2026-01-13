@@ -26,6 +26,7 @@
         <module>microservices/users-service</module>
         <module>microservices/notifications-service</module>
         <module>infrastructure/config-server</module>
+        <module>infrastructure/api-gateway</module>
     </modules>
 
     <dependencyManagement>
