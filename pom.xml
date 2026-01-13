@@ -24,6 +24,7 @@
 
     <modules>
         <module>microservices/users-service</module>
+        <module>microservices/notifications-service</module>
     </modules>
 
     <dependencyManagement>
