@@ -27,6 +27,7 @@
         <module>microservices/notifications-service</module>
         <module>infrastructure/config-server</module>
         <module>infrastructure/api-gateway</module>
+        <module>infrastructure/eureka-server</module>
     </modules>
 
     <dependencyManagement>
