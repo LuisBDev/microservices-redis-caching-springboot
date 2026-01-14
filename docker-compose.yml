@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # REDIS - Cache Database
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass redis123
+
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -a redis123 ping | grep PONG" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # REDISINSIGHT - Redis GUI
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight-gui
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight-data:/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # POSTGRESQL - Users Database
+  postgres-users:
+    image: postgres:16-alpine
+    container_name: postgres-users-db
+    environment:
+      POSTGRES_DB: users_db_redis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-users-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # POSTGRESQL - Notifications Database
+  postgres-notifications:
+    image: postgres:16-alpine
+    container_name: postgres-notifications-db
+    environment:
+      POSTGRES_DB: notifications_db_redis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-notifications-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+  redisinsight-data:
+    driver: local
+  postgres-users-data:
+    driver: local
+  postgres-notifications-data:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge
