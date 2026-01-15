@@ -23,13 +23,20 @@ import java.util.List;
  * Implementa el patrón Cache-Aside usando Redis.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class UserPreferencesService {
 
     private final UserPreferencesRepository preferencesRepository;
     private final UserPreferencesMapper preferencesMapper;
     private final UserService userService;
+
+    public UserPreferencesService(UserPreferencesRepository preferencesRepository,
+                                  UserPreferencesMapper preferencesMapper,
+                                  UserService userService) {
+        this.preferencesRepository = preferencesRepository;
+        this.preferencesMapper = preferencesMapper;
+        this.userService = userService;
+    }
 
     /**
      * Crea nuevas preferencias para un usuario.

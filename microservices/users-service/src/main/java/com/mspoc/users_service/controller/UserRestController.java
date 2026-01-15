@@ -31,6 +31,12 @@ public class UserRestController {
         this.userService = userService;
     }
 
+    @GetMapping("/test/{id}")
+    public ResponseEntity<String> testEndpoint(@PathVariable String id) {
+        log.info("Test endpoint called with ID: {}", id);
+        return ResponseEntity.ok("Test endpoint reached with ID: " + id);
+    }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {

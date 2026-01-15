@@ -75,7 +75,7 @@ public class UserPreferences implements Serializable {
     private LocalTime quietHoursEnd;
 
     @Column(nullable = false, length = 50)
-    private String timezone = "UTC";
+    private String timezone;
 
     // Metadatos
     @CreationTimestamp

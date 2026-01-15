@@ -10,5 +10,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface UsersServiceClient {
 
     @GetMapping("/preferences/user/{userId}")
-    ApiResponse<UserPreferencesResponse> getUserPreferences(@PathVariable Long userId);
+    ApiResponse<UserPreferencesResponse> getUserPreferences(@PathVariable("userId") Long userId);
 }
