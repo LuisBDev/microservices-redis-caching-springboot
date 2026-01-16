@@ -4,6 +4,7 @@ import com.mspoc.users_service.dto.request.CreateUserRequest;
 import com.mspoc.users_service.dto.request.UpdateUserRequest;
 import com.mspoc.users_service.dto.response.ApiResponse;
 import com.mspoc.users_service.dto.response.UserResponse;
+import com.mspoc.users_service.dto.response.UserWithPreferencesResponse;
 import com.mspoc.users_service.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -65,11 +66,11 @@ public class UserRestController {
      * GET /users/{id}/with-preferences
      */
     @GetMapping("/{id}/with-preferences")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserWithPreferences(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserWithPreferencesResponse>> getUserWithPreferences(@PathVariable Long id) {
         log.debug("REST: Fetching user with preferences, ID: {}", id);
 
-        UserResponse user = userService.getUserWithPreferences(id);
-        ApiResponse<UserResponse> response = ApiResponse.success(user);
+        UserWithPreferencesResponse userWithPreferencesResponse = userService.getUserWithPreferences(id);
+        ApiResponse<UserWithPreferencesResponse> response = ApiResponse.success(userWithPreferencesResponse);
 
         return ResponseEntity.ok(response);
     }

@@ -3,6 +3,7 @@ package com.mspoc.users_service.service;
 import com.mspoc.users_service.dto.request.CreateUserRequest;
 import com.mspoc.users_service.dto.request.UpdateUserRequest;
 import com.mspoc.users_service.dto.response.UserResponse;
+import com.mspoc.users_service.dto.response.UserWithPreferencesResponse;
 import com.mspoc.users_service.entity.User;
 import com.mspoc.users_service.exception.ResourceAlreadyExistsException;
 import com.mspoc.users_service.exception.ResourceNotFoundException;
@@ -85,13 +86,14 @@ public class UserService {
      * @throws ResourceNotFoundException Si no existe el usuario
      */
     @Transactional(readOnly = true)
-    public UserResponse getUserWithPreferences(Long id) {
+    public UserWithPreferencesResponse getUserWithPreferences(Long id) {
         log.debug("Fetching user with preferences, ID: {}", id);
 
         User user = userRepository.findByIdWithPreferences(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
-        return userMapper.toResponse(user);
+        UserWithPreferencesResponse userWithPreferencesResponse = userMapper.toResponseWithPreferences(user);
+        return userWithPreferencesResponse;
     }
 
     /**

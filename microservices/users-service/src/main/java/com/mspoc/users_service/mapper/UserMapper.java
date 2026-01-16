@@ -3,13 +3,17 @@ package com.mspoc.users_service.mapper;
 import com.mspoc.users_service.dto.request.CreateUserRequest;
 import com.mspoc.users_service.dto.request.UpdateUserRequest;
 import com.mspoc.users_service.dto.response.UserResponse;
+import com.mspoc.users_service.dto.response.UserWithPreferencesResponse;
 import com.mspoc.users_service.entity.User;
 import org.mapstruct.*;
 
 /**
  * @author Luis Balarezo
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring",
+        uses = {UserPreferencesMapper.class},
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
     /**
@@ -27,6 +31,9 @@ public interface UserMapper {
     @Mapping(target = "fullName", expression = "java(user.getFullName())")
     @Mapping(target = "hasPreferences", expression = "java(user.hasPreferences())")
     UserResponse toResponse(User user);
+
+    @Mapping(target = "fullName", expression = "java(user.getFullName())")
+    UserWithPreferencesResponse toResponseWithPreferences(User user);
 
     /**
      * Actualiza un User entity existente con datos de UpdateUserRequest.
