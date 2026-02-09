@@ -1,6 +1,10 @@
 package com.mspoc.notifications_service.controller;
 
-import com.mspoc.notifications_service.service.NotificationService;
+import com.mspoc.notifications_service.dto.request.NotificationRequest;
+import com.mspoc.notifications_service.dto.response.NotificationResponse;
+import com.mspoc.notifications_service.service.impl.NotificationServiceImpl;
+import com.mspoc.notifications_service.service.interfaces.NotificationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,22 +31,14 @@ public class NotificationRestController {
     }
 
     @PostMapping("/send")
-    public ResponseEntity<?> sendNotification(
-            @RequestParam Long userId,
-            @RequestParam String channel,
-            @RequestParam String message) {
+    public ResponseEntity<NotificationResponse> sendNotification(@Valid @RequestBody NotificationRequest notificationRequest) {
 
-        log.info("Request to send notification to user {} via {}", userId, channel);
+        log.info("Request to send notification to user {} via {}", notificationRequest.getUserId(), notificationRequest.getChannel());
 
-        notificationService.sendNotification(userId, channel, message);
+        notificationService.sendNotification(notificationRequest);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Notification processed");
-        response.put("userId", userId);
-        response.put("channel", channel);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(NotificationResponse.builder().build());
     }
 
     @GetMapping("/can-send")

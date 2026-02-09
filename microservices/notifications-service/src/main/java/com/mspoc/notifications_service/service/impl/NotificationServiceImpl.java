@@ -1,19 +1,28 @@
-package com.mspoc.notifications_service.service;
+package com.mspoc.notifications_service.service.impl;
 
 import com.mspoc.notifications_service.client.UsersServiceClient;
 import com.mspoc.notifications_service.client.dto.ApiResponse;
 import com.mspoc.notifications_service.client.dto.UserPreferencesResponse;
+import com.mspoc.notifications_service.dto.request.NotificationRequest;
+import com.mspoc.notifications_service.dto.response.NotificationResponse;
+import com.mspoc.notifications_service.entity.Notification;
+import com.mspoc.notifications_service.exception.BusinessException;
+import com.mspoc.notifications_service.repository.NotificationRepository;
+import com.mspoc.notifications_service.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationService {
+public class NotificationServiceImpl implements NotificationService {
 
     private final UsersServiceClient usersServiceClient;
+    private final NotificationRepository notificationRepository;
 
+    @Override
     public boolean canSendNotification(Long userId, String channel) {
         try {
             log.debug("Checking notification preferences for user ID: {}, channel: {}", userId, channel);
@@ -45,20 +54,35 @@ public class NotificationService {
         }
     }
 
-    public void sendNotification(Long userId, String channel, String message) {
-        if (!canSendNotification(userId, channel)) {
-            log.info("Notification not sent to user ID {} via {}: preferences do not allow it", userId, channel);
-            return;
+    @Override
+    public NotificationResponse sendNotification(NotificationRequest notificationRequest) {
+        if (!canSendNotification(notificationRequest.getUserId(), notificationRequest.getChannel())) {
+            throw new BusinessException("Cannot send notification: user preferences do not allow it", HttpStatus.FORBIDDEN);
         }
+        
+        notificationChannelSender(notificationRequest);
 
-        log.info("Sending {} notification to user ID: {}", channel, userId);
+        Notification notificationEntity = Notification.builder()
+                .userId(notificationRequest.getUserId())
+                .channel(notificationRequest.getChannel())
+                .message(notificationRequest.getMessage())
+                .build();
 
-        switch (channel.toUpperCase()) {
-            case "EMAIL" -> sendEmail(userId, message);
-            case "PUSH" -> sendPushNotification(userId, message);
-            case "SMS" -> sendSms(userId, message);
-            default -> log.warn("Unknown channel: {}", channel);
-        }
+        Notification savedEntity = notificationRepository.save(notificationEntity);
+
+        return NotificationResponse.builder()
+                .id(savedEntity.getId())
+                .userId(savedEntity.getUserId())
+                .channel(savedEntity.getChannel())
+                .message(savedEntity.getMessage())
+                .sentAt(savedEntity.getSentAt())
+                .build();
+
+
+    }
+
+    private void notificationChannelSender(NotificationRequest notificationRequest) {
+        log.info("Sending notification on channel {}  to user ID: {}", notificationRequest.getChannel(), notificationRequest.getUserId());
     }
 
     private void sendEmail(Long userId, String message) {
