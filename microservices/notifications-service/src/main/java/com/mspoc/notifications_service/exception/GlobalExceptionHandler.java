@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex, HttpServletRequest request) {
-        log.error("BusinessException: {}", ex.getMessage(), ex);
+        log.error("BusinessException: {}", ex.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
