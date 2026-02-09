@@ -28,8 +28,7 @@ public class UserPreferencesController {
      * Crea nuevas preferencias para un usuario.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<UserPreferencesResponse>> createPreferences(
-            @Valid @RequestBody UserPreferencesRequest request) {
+    public ResponseEntity<ApiResponse<UserPreferencesResponse>> createPreferences(@Valid @RequestBody UserPreferencesRequest request) {
         log.info("REST: Creating preferences for user ID: {}", request.getUserId());
 
         UserPreferencesResponse preferences = preferencesService.createPreferences(request);

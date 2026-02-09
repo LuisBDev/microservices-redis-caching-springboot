@@ -1,8 +1,8 @@
 package com.mspoc.notifications_service.service;
 
 import com.mspoc.notifications_service.client.UsersServiceClient;
-import com.mspoc.notifications_service.dto.ApiResponse;
-import com.mspoc.notifications_service.dto.UserPreferencesResponse;
+import com.mspoc.notifications_service.client.dto.ApiResponse;
+import com.mspoc.notifications_service.client.dto.UserPreferencesResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

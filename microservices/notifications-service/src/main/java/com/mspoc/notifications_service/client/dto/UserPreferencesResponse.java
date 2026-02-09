@@ -1,4 +1,4 @@
-package com.mspoc.notifications_service.dto;
+package com.mspoc.notifications_service.client.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

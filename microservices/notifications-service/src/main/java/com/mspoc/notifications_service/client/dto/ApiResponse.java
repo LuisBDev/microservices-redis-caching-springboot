@@ -1,4 +1,4 @@
-package com.mspoc.notifications_service.dto;
+package com.mspoc.notifications_service.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
