@@ -57,9 +57,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationResponse sendNotification(NotificationRequest notificationRequest) {
         if (!canSendNotification(notificationRequest.getUserId(), notificationRequest.getChannel())) {
-            throw new BusinessException("Cannot send notification: user preferences do not allow it", HttpStatus.FORBIDDEN);
+            throw new BusinessException("Cannot send notification to this user on channel " + notificationRequest.getChannel(), HttpStatus.BAD_REQUEST);
         }
-        
+
         notificationChannelSender(notificationRequest);
 
         Notification notificationEntity = Notification.builder()

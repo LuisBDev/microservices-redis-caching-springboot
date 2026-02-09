@@ -35,10 +35,10 @@ public class NotificationRestController {
 
         log.info("Request to send notification to user {} via {}", notificationRequest.getUserId(), notificationRequest.getChannel());
 
-        notificationService.sendNotification(notificationRequest);
+        NotificationResponse notificationResponse = notificationService.sendNotification(notificationRequest);
 
 
-        return ResponseEntity.ok(NotificationResponse.builder().build());
+        return ResponseEntity.ok(notificationResponse);
     }
 
     @GetMapping("/can-send")
