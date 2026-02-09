@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 40050
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/notifications_db_redis
