@@ -32,6 +32,7 @@ public class RedisConfig {
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
 
+        //Default configuration for all caches, can be overridden per cache name
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(redisTtlInMinutes))
                 .disableCachingNullValues()
@@ -39,10 +40,11 @@ public class RedisConfig {
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper())));
 
+        // Specific cache configurations for different cache names
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultConfig)
                 .withCacheConfiguration("user-preferences",
-                        defaultConfig.entryTtl(Duration.ofMinutes(2)))
+                        defaultConfig.entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration("user-profiles",
                         defaultConfig.entryTtl(Duration.ofMinutes(30)))
                 .withCacheConfiguration("notification-settings",
