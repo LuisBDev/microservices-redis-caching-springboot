@@ -1,5 +1,6 @@
 package com.mspoc.users_service.controller;
 
+import com.mspoc.users_service.dto.request.UpdateUserPreferencesRequest;
 import com.mspoc.users_service.dto.request.UserPreferencesRequest;
 import com.mspoc.users_service.dto.response.ApiResponse;
 import com.mspoc.users_service.dto.response.UserPreferencesResponse;
@@ -85,13 +86,11 @@ public class UserPreferencesController {
     @PutMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<UserPreferencesResponse>> updatePreferences(
             @PathVariable Long userId,
-            @Valid @RequestBody UserPreferencesRequest request) {
+            @Valid @RequestBody UpdateUserPreferencesRequest request) {
         log.info("REST: Updating preferences for user ID: {}", userId);
 
-        // Asegurar que el userId del path coincida con el del body
-        request.setUserId(userId);
 
-        UserPreferencesResponse preferences = preferencesService.updatePreferences(userId, request);
+        UserPreferencesResponse preferences = preferencesService.updatePreferencesV2(userId, request);
         ApiResponse<UserPreferencesResponse> response = ApiResponse.success(
                 "Preferences updated successfully",
                 preferences);
@@ -106,7 +105,7 @@ public class UserPreferencesController {
     public ResponseEntity<ApiResponse<Void>> deletePreferences(@PathVariable Long userId) {
         log.info("REST: Deleting preferences for user ID: {}", userId);
 
-        preferencesService.deletePreferences(userId);
+        preferencesService.deletePreferencesV2(userId);
         ApiResponse<Void> response = ApiResponse.success("Preferences deleted successfully", null);
 
         return ResponseEntity.ok(response);

@@ -1,5 +1,6 @@
 package com.mspoc.users_service.service;
 
+import com.mspoc.users_service.dto.request.UpdateUserPreferencesRequest;
 import com.mspoc.users_service.dto.request.UserPreferencesRequest;
 import com.mspoc.users_service.dto.response.UserPreferencesResponse;
 import com.mspoc.users_service.entity.User;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,7 +121,7 @@ public class UserPreferencesService {
      */
     @Transactional
     @CachePut(value = "user-preferences", key = "#userId")
-    public UserPreferencesResponse updatePreferences(Long userId, UserPreferencesRequest request) {
+    public UserPreferencesResponse updatePreferences(Long userId, UpdateUserPreferencesRequest request) {
         log.info("Updating preferences for user ID: {}", userId);
 
         UserPreferences preferences = preferencesRepository.findByUserId(userId)
@@ -131,6 +133,75 @@ public class UserPreferencesService {
 
         log.info("Preferences updated and cache refreshed for user ID: {}", userId);
         return response;
+    }
+
+    /**
+     * Updates user preferences and synchronizes both individual and list caches.
+     * <p>
+     * This method uses {@code @Caching} to perform multiple cache operations atomically:
+     * <ul>
+     *   <li>{@code @CachePut} - Updates the individual user preference cache entry
+     *       with the key pattern "user-preferences::{userId}"</li>
+     *   <li>{@code @CacheEvict} - Evicts the cached list of all preferences
+     *       with the key "user-preferences::all"</li>
+     * </ul>
+     * <p>
+     * <strong>Cache Strategy:</strong>
+     * <ul>
+     *   <li>The individual preference is immediately updated in cache to ensure
+     *       consistency for single-user queries</li>
+     *   <li>The "all preferences" list is evicted to prevent stale data. The next
+     *       call to {@link #getAllPreferences()} will regenerate and cache the
+     *       updated list</li>
+     *   <li>This approach avoids the complexity of manually updating the list cache
+     *       while maintaining eventual consistency</li>
+     * </ul>
+     *
+     * @param userId  the ID of the user whose preferences are being updated
+     * @param request the updated user preferences request
+     * @return the updated user preferences response
+     * @throws ResourceNotFoundException if preferences are not found for the user
+     */
+    @Transactional
+    @Caching(
+            put = {
+                    @CachePut(value = "user-preferences", key = "#userId")
+            },
+            evict = {
+                    @CacheEvict(value = "user-preferences", key = "'all'")
+            }
+    )
+    public UserPreferencesResponse updatePreferencesV2(Long userId, UpdateUserPreferencesRequest request) {
+        log.info("V2 - Updating preferences for user ID: {}", userId);
+
+        UserPreferences preferences = preferencesRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserPreferences", "userId", userId));
+
+        preferencesMapper.updateEntityFromRequest(request, preferences);
+        UserPreferences updatedPreferences = preferencesRepository.save(preferences);
+        UserPreferencesResponse response = preferencesMapper.toResponse(updatedPreferences);
+
+        log.info("V2 - Preferences updated and cache refreshed for user ID: {}", userId);
+        return response;
+    }
+
+
+    @Transactional
+//    @CacheEvict(value = "user-preferences", key = "#userId")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "user-preferences", key = "#userId"),
+                    @CacheEvict(value = "user-preferences", key = "'all'")
+            })
+    public void deletePreferencesV2(Long userId) {
+        log.info("V2 - Deleting preferences for user ID: {}", userId);
+
+        if (!preferencesRepository.existsByUserId(userId)) {
+            throw new ResourceNotFoundException("UserPreferences", "userId", userId);
+        }
+
+        preferencesRepository.deleteByUserId(userId);
+        log.info("V2 - Preferences deleted and evicted from cache for user ID: {}", userId);
     }
 
     /**
@@ -155,6 +226,7 @@ public class UserPreferencesService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "user-preferences", key = "'all'", unless = "#result == null || #result.isEmpty()")
     public List<UserPreferencesResponse> getAllPreferences() {
         log.debug("Fetching all preferences");
 
