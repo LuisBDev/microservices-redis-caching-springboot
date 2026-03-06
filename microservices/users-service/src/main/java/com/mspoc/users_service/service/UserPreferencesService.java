@@ -8,7 +8,6 @@ import com.mspoc.users_service.exception.ResourceAlreadyExistsException;
 import com.mspoc.users_service.exception.ResourceNotFoundException;
 import com.mspoc.users_service.mapper.UserPreferencesMapper;
 import com.mspoc.users_service.repository.UserPreferencesRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -19,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Servicio para gestión de preferencias de usuario.
- * Implementa el patrón Cache-Aside usando Redis.
+ * Service for managing user preferences.
+ * Implements the Cache-Aside pattern using Redis.
  */
 @Service
 @Slf4j
@@ -39,7 +38,15 @@ public class UserPreferencesService {
     }
 
     /**
-     * Crea nuevas preferencias para un usuario.
+     * Creates new preferences for a user.
+     * <p>
+     * {@code @CachePut} always executes the method and updates the cache with the result,
+     * regardless of whether a value already exists. Used for creating or updating data.
+     *
+     * @param request the user preferences request containing userId and preference settings
+     * @return the created user preferences response
+     * @throws ResourceAlreadyExistsException if preferences already exist for the user
+     * @throws ResourceNotFoundException      if the user is not found
      */
     @Transactional
     @CachePut(value = "user-preferences", key = "#request.userId")
@@ -62,9 +69,18 @@ public class UserPreferencesService {
     }
 
     /**
-     * Obtiene las preferencias de un usuario por su ID.
-     * Implementa Cache-Aside: busca primero en Redis, si no existe consulta BD y
-     * cachea.
+     * Retrieves user preferences by user ID.
+     * <p>
+     * Implements Cache-Aside pattern: searches first in Redis cache, if not found
+     * queries the database and caches the result.
+     * <p>
+     * {@code @Cacheable} searches first in the cache. If a value exists, it returns it without
+     * executing the method; otherwise, it executes the method, saves the result in the
+     * cache, and returns it. Used for read operations.
+     *
+     * @param userId the ID of the user
+     * @return the user preferences response
+     * @throws ResourceNotFoundException if preferences are not found for the user
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "user-preferences", key = "#userId", unless = "#result == null")
@@ -90,6 +106,17 @@ public class UserPreferencesService {
         return preferencesMapper.toResponse(preferences);
     }
 
+    /**
+     * Updates user preferences and refreshes the cache.
+     * <p>
+     * {@code @CachePut} ensures the cache is updated with the latest preference values
+     * after a successful update operation.
+     *
+     * @param userId  the ID of the user whose preferences are being updated
+     * @param request the updated user preferences request
+     * @return the updated user preferences response
+     * @throws ResourceNotFoundException if preferences are not found for the user
+     */
     @Transactional
     @CachePut(value = "user-preferences", key = "#userId")
     public UserPreferencesResponse updatePreferences(Long userId, UserPreferencesRequest request) {
@@ -106,6 +133,14 @@ public class UserPreferencesService {
         return response;
     }
 
+    /**
+     * Deletes user preferences and evicts them from cache.
+     * <p>
+     * {@code @CacheEvict} removes the cached entry for the specified user ID after deletion.
+     *
+     * @param userId the ID of the user whose preferences are being deleted
+     * @throws ResourceNotFoundException if preferences are not found for the user
+     */
     @Transactional
     @CacheEvict(value = "user-preferences", key = "#userId")
     public void deletePreferences(Long userId) {
@@ -139,6 +174,11 @@ public class UserPreferencesService {
                 .toList();
     }
 
+    /**
+     * Retrieves all users with push notifications enabled.
+     *
+     * @return list of user preferences with push notifications enabled
+     */
     @Transactional(readOnly = true)
     public List<UserPreferencesResponse> getUsersWithPushNotifications() {
         log.debug("Fetching users with push notifications enabled");
@@ -159,6 +199,12 @@ public class UserPreferencesService {
                 .toList();
     }
 
+    /**
+     * Clears all entries from the user-preferences cache.
+     * <p>
+     * This is useful for cache invalidation when needed, such as during
+     * administrative operations or testing.
+     */
     @CacheEvict(value = "user-preferences", allEntries = true)
     public void clearAllCache() {
         log.warn("Clearing entire user-preferences cache");
