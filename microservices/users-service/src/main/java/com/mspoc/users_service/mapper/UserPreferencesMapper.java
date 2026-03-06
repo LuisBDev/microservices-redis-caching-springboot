@@ -1,5 +1,6 @@
 package com.mspoc.users_service.mapper;
 
+import com.mspoc.users_service.dto.request.UpdateUserPreferencesRequest;
 import com.mspoc.users_service.dto.request.UserPreferencesRequest;
 import com.mspoc.users_service.dto.response.UserPreferencesResponse;
 import com.mspoc.users_service.entity.UserPreferences;
@@ -41,5 +42,5 @@ public interface UserPreferencesMapper {
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateEntityFromRequest(UserPreferencesRequest request, @MappingTarget UserPreferences preferences);
+    void updateEntityFromRequest(UpdateUserPreferencesRequest request, @MappingTarget UserPreferences preferences);
 }
